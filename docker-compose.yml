@@ -1,0 +1,67 @@
+# services declaration.
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-cellarvinhos
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - 8086:80
+    volumes:
+      - ./src:/app
+      - ./docker/configs/nginx:/etc/nginx/conf.d
+    networks:
+      - cellarvinhos
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.15'
+        reservations:
+          memory: 100M
+  #App  
+  app:
+    build:
+      args:
+        user: cellarvinhos
+        uid: 1000
+      context: .
+      dockerfile: ./docker/dockerfiles/fpm.Dockerfile
+    image: hillushilbert/cellarvinhos:php-fpm
+    container_name: app-cellarvinhos
+    volumes:
+      - ./src:/app
+      - ./docker/configs/php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+    - cellarvinhos
+  
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - cellarvinhos-mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=cellarvinhos
+    networks:
+      - cellarvinhos
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    networks:
+      - cellarvinhos   
+  
+networks:
+  cellarvinhos:
+    driver: bridge
+
+volumes:
+  cellarvinhos-mysql-data:
+  # cellarvinhos-rabbit-data:
