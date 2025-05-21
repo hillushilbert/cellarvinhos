@@ -25,4 +25,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(Category::class,'category_id','id');
     }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class,'created_by','id');
+    }
 }

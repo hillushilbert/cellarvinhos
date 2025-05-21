@@ -16,7 +16,6 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        Log::info(__METHOD__);
         $categories = Category::paginate(25);
         return response()->json($categories,200);
     }

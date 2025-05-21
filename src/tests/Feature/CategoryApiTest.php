@@ -80,7 +80,7 @@ class CategoryApiTest extends TestCase
             'created_by' => $this->user->id
         ]);
 
-        $ticket = Ticket::create([
+        Ticket::create([
             'title' => 'Ticket test',
             'description' => 'Ticket test',
             'category_id' => $category->id,
