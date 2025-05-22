@@ -1,5 +1,49 @@
 # 🧪 Teste Técnico – Desenvolvedor(a) Sênior PHP/Laravel
 
+## Instalação
+
+    cp ./src/.env.example /src/.env
+
+    docker compose build
+
+    docker compose up -d
+
+    docker compose exec app php artisan migrate
+    docker compose exec app php artisan db:seed
+
+
+## Link da app
+
+Aplicação roda na url: http://localhost:8086
+
+Usuário: admin@cellarvinhos.com.br
+Senha: password
+
+## Stack
+
+    Laravel 11
+    PHP 8.2
+    Typescript 5
+    Node18
+    React18
+    Tailwindcss4
+    Inertia
+    Mysql5.7
+    Nginx1.3
+    Laravel Breeze
+
+## Testes
+
+```sh
+docker compose exec app php artisan test
+``` 
+
+    Os testes executam na mesmo banco de dados, o que faz com que os registros sejam apagados por conta do refresh datatabase usado nos testes.
+
+## Observação
+
+    Tentei usar o Design Template proposto porém para uso com react eu iria gastar um pouco mais de tempo, o que não casou com minha agenda esta semana. :(
+
 ## 📝 Descrição
 
 Este teste tem como objetivo avaliar seus conhecimentos em desenvolvimento web full stack, com foco em **Laravel** no backend e **JS/jQuery ou Livewire, ou qualquer framework/biblioteca de Frontend**.
