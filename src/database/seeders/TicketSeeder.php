@@ -27,6 +27,12 @@ class TicketSeeder extends Seeder
                 'description' => 'Description ticket 1',
                 'status' => 'resolvido',
                 'category' => 'Category 1'
+            ],
+            [
+                'title' => 'Ticket 2',
+                'description' => 'Description ticket 2',
+                'status' => 'em progresso',
+                'category' => 'Category 2'
             ]
         ];
         

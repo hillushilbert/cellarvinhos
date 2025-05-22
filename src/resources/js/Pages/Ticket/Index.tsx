@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import React, { useState, FormEventHandler, useEffect } from 'react';
 import { useForm, usePage, Link  } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
-import { PageProps, Paginator, Ticket  } from '@/types';
+import { Category, PageProps, Paginator, Ticket  } from '@/types';
 import Filter from './Partials/Filter';
 import Pagination from '@/Components/Pagination';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -13,18 +13,45 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import axios from 'axios';
+import UpdateTicketForm from './Partials/UpdateTicketForm';
+
+export function addDefault(lista:Array<any>, itemDefault: any)
+{
+    if(lista.filter(item => item.id == 0).length == 0){
+        lista.unshift(itemDefault);
+    }    
+}
 
 export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Paginator, filter: any }>) {
 
 
-    const [filterStatus, setFilterStatus] = useState();
+    const [categorySelected, setCategorySelected] = useState<number>(0);
+    const [statusSelected, setStatusSelected] = useState<string>('');
     const [hasToken, setHasToken] = useState<boolean>(false);
-    const [confirmingNewDealer, setConfirmingNewDealer] = useState(false);
+    const [confirmingNewTicket, setConfirmingNewTicket] = useState(false);
+    const [confirmingStoreTicket, setConfirmingStoreTicket] = useState(false);
     const [tickets,setTickets] = useState<Ticket[]>();
+    const [errorMessage,setErrorMessage] = useState<string>();
 
     const confirmNewLeadSource = () => {
-        setConfirmingNewDealer(true);
+        setConfirmingNewTicket(true);
     };
+
+    const onCategoryChange = (id:number) => {
+        console.log(`category_id: ${id}`);
+        setCategorySelected(id);
+    }
+
+    const onStatusChange = (status:string) => {
+        console.log(`status: ${status}`);
+        setStatusSelected(status);
+    }
+
+    const [categories, setCategories] = useState<Category[]>([{ 
+        id: 0, 
+        name: "Selecione" 
+    }]);
+
 
     useEffect(() => {
         const fetchToken = async() => {
@@ -49,32 +76,71 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
 
     useEffect(() => {
         const fetchTickets = async() => {
-        try 
-        {
+            try 
+            {
+                let url = `/api/tickets`;
+                let params = {};
 
-            const token = localStorage.getItem("authToken"); // Token armazenado após login
-            console.log(token);
-            const response = await axios.get(
-                `/api/tickets`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`, // Passando um token no header
-                        "Accept": "application/json", // Adicionando um header personalizado
-                    },
+                if(categorySelected > 0 || statusSelected != ''){
+                    params = {
+                        category_id: categorySelected,
+                        status: statusSelected
+                    }
                 }
-            );
-            console.log(response.data);
-            setTickets(response.data.data);
-        } catch (error) {
-            console.error('Erro ao buscar opções:', error);
+
+                const token = localStorage.getItem("authToken"); // Token armazenado após login
+                console.log(token);
+                const response = await axios.get(
+                    `/api/tickets`,
+                    {
+                        params: params,
+                        headers: {
+                            Authorization: `Bearer ${token}`, // Passando um token no header
+                            "Accept": "application/json", // Adicionando um header personalizado
+                        },
+                    }
+                );
+                console.log(response.data);
+                setTickets(response.data.data);
+            } catch (error) {
+                console.error('Erro ao buscar opções:', error);
+            }
         }
-    }
         // Inicialmente, carregamos todas as opções
         if(hasToken){
             fetchTickets();
         }
+    }, [hasToken, categorySelected, statusSelected, confirmingStoreTicket]);
 
-    }, [filterStatus, hasToken]);
+
+    useEffect(() => {
+        const fetchCategories = async() => {
+            try 
+            {
+
+                const token = localStorage.getItem("authToken"); // Token armazenado após login
+                console.log(token);
+                const response = await axios.get(
+                    `/api/categories`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`, // Passando um token no header
+                            "Accept": "application/json", // Adicionando um header personalizado
+                        },
+                    }
+                );
+                console.log(response.data);
+                addDefault(response.data.data,{id:0, name:""});
+                setCategories(response.data.data);
+            } catch (error) {
+                console.error('Erro ao buscar opções:', error);
+            }
+        }
+        // Inicialmente, carregamos todas as opções
+        if(hasToken){
+            fetchCategories();
+        }
+    }, [hasToken]);
 
     const {
         data,
@@ -86,28 +152,49 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
         errors,
     } = useForm({
         title: '',
-        description: ''
+        description: '',
+        category_id: ''
         // category_id: ''
     });
     
-    const closeModal = () => {
-        setConfirmingNewDealer(false);
-
+    const closeModal =  () => {
+        setConfirmingStoreTicket(!confirmingStoreTicket);
+        setConfirmingNewTicket(false);
+        setErrorMessage('');
         reset();
     };
 
-    const createTicket: FormEventHandler = (e) => {
+    const createTicket: FormEventHandler = async (e) => {
+        
         e.preventDefault();
+        let response;
+        try 
+        {
+            
+            const token = localStorage.getItem("authToken"); // Token armazenado após login
 
-        store(route('api.tickets.store'), {
-            preserveScroll: true,
-            onSuccess: () => closeModal(),
-            // onError: () => passwordInput.current?.focus(),
-            onFinish: () => reset(),
-        });
+            response = await axios.post(
+                `/api/tickets`,
+                data,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Passando um token no header
+                        "Accept": "application/json", // Adicionando um header personalizado
+                    },
+                }
+            );
+            console.log(response.data);
+            closeModal();
+        } catch (error) {
+            console.error('Erro ao buscar opções:', error);
+            if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.errors) {
+                setErrorMessage(error.response.data.errors);
+            } else {
+                setErrorMessage('Ocorreu um erro desconhecido.');
+            }
+        }
+        
     };
-
-
 
     return (
         <AuthenticatedLayout
@@ -119,7 +206,7 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">   
                     <div className="bg-white  relative shadow-md sm:rounded-lg overflow-hidden">
 
-                        <Filter search={""} filter={filter}>
+                        <Filter onStatusChange={onStatusChange} onCategoryChange={onCategoryChange}>
                             <PrimaryButton onClick={confirmNewLeadSource}>Adicionar</PrimaryButton>
                         </Filter>
                         <div className="overflow-x-auto">
@@ -143,10 +230,7 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
                                         <td className="px-4 py-3">{item.description}</td>
                                         <td className="px-4 py-3">{item.status}</td>
                                         <td className="px-4 py-3 flex items-center justify-end">         
-                                            <Link href={route('tickets.edit',item.id)} className='mr-1'>
-                                                <SecondaryButton >Editar</SecondaryButton>
-                                            </Link>
-                                           
+                                            <UpdateTicketForm ticketId={item.id} onCloseModal={closeModal} />                                           
                                         </td>
                                     </tr>
                                 )) }    
@@ -158,7 +242,7 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
                 </div>
             </div>
 
-            <Modal show={confirmingNewDealer} onClose={closeModal}>
+            <Modal show={confirmingNewTicket} onClose={closeModal}>
                 <form onSubmit={createTicket} className="p-6">
                     <h2 className="text-lg font-medium text-gray-900">
                         Criar nova Marca
@@ -177,7 +261,7 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
                             placeholder="Nome da Empresa"
                         />
 
-                        <InputError message={errors.title} className="mt-2" />
+                        <InputError message={typeof errorMessage === 'object' && errorMessage !== null ? (errorMessage as any).title : undefined} className="mt-2" />
                     </div>
 
                     <div className="mt-6">
@@ -193,7 +277,24 @@ export default function TicketIndex({ auth, page, filter }: PageProps<{ page: Pa
                             placeholder="Marca"
                         />
 
-                        <InputError message={errors.description} className="mt-2" />
+                        <InputError message={typeof errorMessage === 'object' && errorMessage !== null ? (errorMessage as any).description : undefined} className="mt-2" />
+                    </div>
+
+                    <div className="mt-6">
+                        <InputLabel htmlFor="category_id" value="Categoria" />
+                        <select 
+                            className=" border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 pl-5 p-2  w-11/12"
+                            name="category_id" 
+                            id="category_id"
+                            value={data.category_id} 
+                            onChange={(e)=> { setData('category_id', e.target.value)}}
+                            >
+                            {categories.map(item => (
+                                    <option value={item.id}>{item.name}</option>
+                            )) }  
+                        </select>  
+
+                        <InputError message={typeof errorMessage === 'object' && errorMessage !== null ? (errorMessage as any).category_id : undefined} className="mt-2" />
                     </div>
 
                     <div className="mt-6 flex justify-end">

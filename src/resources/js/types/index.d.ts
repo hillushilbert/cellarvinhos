@@ -40,3 +40,8 @@ export interface Ticket {
     category_id: number,
     created_by: number,
 }
+
+export interface Category {
+    id: number,
+    name: string,
+}

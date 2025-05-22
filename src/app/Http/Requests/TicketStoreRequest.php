@@ -11,7 +11,7 @@ class TicketStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,9 @@ class TicketStoreRequest extends FormRequest
     {
         return [
             //
+            'title' => ['required','string'],
+            'description' => ['string','nullable'],
+            'category_id' => ['required'],
         ];
     }
 }
