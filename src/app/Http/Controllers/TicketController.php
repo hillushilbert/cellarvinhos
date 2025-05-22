@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use Inertia\Inertia;
+use Inertia\Response;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
 {
     //
 
-    public function create(Request $request)
+    public function index(Request $request)
     {
-        $categories = Category::get();
-        return view('admin.tickets.create',compact('categories'));
+        $status = [
+            ''
+        ];
+
+        return Inertia::render('Ticket/Index', [
+            'status' => $status,
+            'filter' => $request->all(),
+        ]);
     }
 }
