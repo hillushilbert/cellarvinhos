@@ -10,7 +10,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:sanctum'],'as'=>'api.'], function () {
     Route::apiResource('categories',CategoryController::class);
     Route::apiResource('tickets',TicketController::class);
 });
