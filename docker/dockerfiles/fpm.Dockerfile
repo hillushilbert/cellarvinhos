@@ -46,8 +46,13 @@ RUN apt-get update && apt-get install -y \
     libaio-dev \
     net-tools \
     libpq-dev \
-    poppler-utils \
-    nodejs 
+    poppler-utils
+
+# Adicionar o repositório oficial do Node.js 18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+
+# Instalar o Node.js
+RUN apt-get install -y nodejs
 
 
 # Clear cache
